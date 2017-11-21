@@ -2,8 +2,8 @@ module AltoGuissoRails
   module ApplicationHelper
     def guisso_sign_in_path_for(mapping)
       if Guisso.enabled?
-        method = "#{mapping}_omniauth_authorize_path"
-        send method, :instedd
+        method = "omniauth_authorize_path"
+        send method, mapping, :instedd
       else
         new_session_path mapping
       end
@@ -11,8 +11,8 @@ module AltoGuissoRails
 
     def guisso_sign_up_path_for(mapping)
       if Guisso.enabled?
-        method = "#{mapping}_omniauth_authorize_path"
-        send method, :instedd, signup: true
+        method = "omniauth_authorize_path"
+        send method, mapping, :instedd, signup: true
       else
         new_registration_path mapping
       end

@@ -6,7 +6,7 @@ module ActionDispatch::Routing
 
         ActionController::Base.class_eval <<-METHODS, __FILE__, __LINE__ + 1
           unless method_defined?(:check_guisso_cookie)
-            before_filter :check_guisso_cookie
+            before_action :check_guisso_cookie
           end
 
           def check_guisso_cookie
@@ -53,15 +53,21 @@ module ActionDispatch::Routing
           end
 
           unless method_defined?(:authenticate_#{mapping}_without_guisso!)
-            alias_method_chain :authenticate_#{mapping}!, :guisso
+            alias_method :authenticate_#{mapping}_without_guisso!, :authenticate_#{mapping}!
+            def authenticate_#{mapping}!
+              authenticate_#{mapping}_with_guisso!
+            end
           end
 
           unless method_defined?(:current_#{mapping}_without_guisso)
-            alias_method_chain :current_#{mapping}, :guisso
+            alias_method :current_#{mapping}_without_guisso, :current_#{mapping}
+            def current_#{mapping}
+              current_#{mapping}_with_guisso
+            end
           end
 
           def redirect_to_guisso
-            redirect_to #{mapping}_omniauth_authorize_path(:instedd, origin: request.url), status: :found
+            redirect_to omniauth_authorize_path(:#{mapping}, :instedd, origin: request.url), status: :found
           end
 
           def authenticate_api_#{mapping}!
