@@ -24,6 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency("ruby-openid")
   spec.add_dependency("omniauth")
   spec.add_dependency("omniauth-openid")
+  spec.add_dependency("dalli")
 
   spec.add_development_dependency "bundler", "~> 1.7"
   spec.add_development_dependency "rake", "~> 10.0"

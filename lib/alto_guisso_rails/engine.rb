@@ -2,6 +2,7 @@ require_relative "rails/routes"
 require_relative "../../app/helpers/alto_guisso_rails/application_helper"
 require 'omniauth-openid'
 require 'openid/store/filesystem'
+require 'openid/store/memcache'
 
 class AltoGuissoRails::Railtie < Rails::Railtie
   initializer "guisso.initializer" do |app|
@@ -12,7 +13,19 @@ class AltoGuissoRails::Railtie < Rails::Railtie
         require "devise"
 
         Devise.setup do |config|
-          config.omniauth :open_id, store: OpenID::Store::Filesystem.new("#{Rails.root}/tmp"), name: 'instedd', identifier: Guisso.openid_url, require: 'omniauth-openid'
+          store_config = URI(ENV["GUISSO_OPENID_STORE"] || "file:tmp/openid")
+          case store_config.scheme
+          when "file"
+            dir = Pathname.new(Rails.root).join(store_config.opaque || store_config.path)
+            store = OpenID::Store::Filesystem.new(dir)
+          when "memcache", "memcached"
+            memcache_address = store_config.select(:host, :port).compact.join(":")
+            memcache_client = Dalli::Client.new(memcache_address)
+            store = OpenID::Store::Memcache.new(memcache_client)
+          else
+            raise "Invalid OpenID store config: #{store_config}"
+          end
+          config.omniauth :open_id, store: store, name: 'instedd', identifier: Guisso.openid_url, require: 'omniauth-openid'
         end
       rescue LoadError => ex
         puts "Warning: failed loading. #{ex}"
