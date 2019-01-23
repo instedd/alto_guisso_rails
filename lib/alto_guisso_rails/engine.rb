@@ -3,6 +3,7 @@ require_relative "../../app/helpers/alto_guisso_rails/application_helper"
 require 'omniauth-openid'
 require 'openid/store/filesystem'
 require 'openid/store/memcache'
+require 'dalli'
 
 class AltoGuissoRails::Railtie < Rails::Railtie
   initializer "guisso.initializer" do |app|
