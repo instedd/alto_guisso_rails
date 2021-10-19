@@ -1,7 +1,9 @@
 module AltoGuissoRails
   def self.validate_oauth2_request(req)
     token_body = Rails.cache.fetch(req.access_token, expires_in: 60) do
-      response = HTTPClient.new.get Guisso.trusted_token_url,
+      client = HTTPClient.new
+      client.ssl_config.set_default_paths
+      response = client.get Guisso.trusted_token_url,
               identifier: Guisso.client_id,
               secret: Guisso.client_secret,
               token: req.access_token
