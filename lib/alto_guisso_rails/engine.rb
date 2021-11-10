@@ -59,13 +59,14 @@ class AltoGuissoRails::Railtie < Rails::Railtie
       end
 
       class ::Rack::OpenID
-        def open_id_redirect_url_with_guisso(req, oidreq, trust_root, return_to, method, immediate)
+        alias_method :open_id_redirect_url_without_guisso, :open_id_redirect_url
+
+        def open_id_redirect_url(req, oidreq, trust_root, return_to, method, immediate)
           if req.params['signup']
             oidreq.add_extension(AltoGuissoRails::OpenID::Extension.new signup: "true")
           end
           open_id_redirect_url_without_guisso(req, oidreq, trust_root, return_to, method, immediate)
         end
-        alias_method_chain :open_id_redirect_url, :guisso
       end
     end
   end
@@ -76,7 +77,9 @@ class AltoGuissoRails::Engine < Rails::Engine
     ApplicationController.helper AltoGuissoRails::ApplicationHelper
 
     class ::ApplicationController
-      def after_sign_out_path_for_with_guisso(resource)
+      alias_method :after_sign_out_path_for_without_guisso, :after_sign_out_path_for
+
+      def after_sign_out_path_for(resource)
         return_path = after_sign_out_path_for_without_guisso(resource)
         return return_path unless Guisso.enabled?
 
@@ -84,7 +87,6 @@ class AltoGuissoRails::Engine < Rails::Engine
         options = { after_sign_out_url: return_url }
         "#{Guisso.sign_out_url}?#{options.to_query}"
       end
-      alias_method_chain :after_sign_out_path_for, :guisso
     end
   end
 end
